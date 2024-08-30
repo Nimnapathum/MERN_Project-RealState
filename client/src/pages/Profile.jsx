@@ -6,7 +6,6 @@ import { updateUserStart , updateUserSuccess , updateUserFailure, deleteUserFail
 import { useDispatch } from 'react-redux';
 import { Link } from 'react-router-dom';
 
-
 export default function Profile() {
   const fileRef = useRef(null);
   const { currentUser , loading , error } = useSelector((state) => state.user);
@@ -16,6 +15,9 @@ export default function Profile() {
   const [formData, setFormData] = useState({});
   const [ updateSuccess , setUpdateSuccess ] = useState(false);
   const dispatch = useDispatch();
+  const [userListing , setUserListing] = useState([]);
+
+  const [showListingError , setShowListingError] = useState(false);
 
   useEffect(() => {
     if (file) {
@@ -109,6 +111,22 @@ export default function Profile() {
     }
   }
 
+  const handleShowListings = async () => {
+    try {
+      setShowListingError(false);
+      const res = await fetch(`/api/user/listings/${currentUser._id}`);
+      const data = await res.json();
+      if(data.success === false){
+        setShowListingError(true);
+        return;
+      }
+      setUserListing(data);
+    } catch (error) {
+      console.log(error);
+      setShowListingError(true);
+    }
+  }
+
   return (
     <div className='p-3 max-w-lg mx-auto'>
       <h1 className="text-3xl font-semibold text-center my-7">Profile</h1>
@@ -148,6 +166,34 @@ export default function Profile() {
       </div>
       <p className='text-red-700 mt-5'>{error ? error : ''}</p>
       <p className='text-green-700 mt-5'>{updateSuccess ? 'Update User Successfully!' : ''}</p>
+    
+      <button onClick={handleShowListings} className='text-green-700 w-full'>
+        Show Listings
+      </button>
+      <p className='text-red-700 mt-5'>{showListingError ? 'Error showing listings' : ''}</p>
+    
+
+
+      {userListing && userListing.length > 0 && 
+        <div className='flex flex-col gap-4'>
+          <h1 className='text-center mt-7 text-2xl font-semibold'>Your Listings</h1>
+          {userListing.map((listings) => (
+            <div key={listings._id} className='border rounded-lg p-3 flex justify-between items-center gap-4'>
+              <Link to={`/listing/${listings._id}`}>
+                <img src={listings.imageUrls[0]} alt='listing cover' className='w-16 h-16 object-contain' />
+              </Link>
+              <Link to={`/listing/${listings._id}`} className='text-slate-700 font-semibold flex-1 hover:underline truncate'>
+                <p>{listings.name}</p>
+              </Link>
+              <div className='flex flex-col items-center'>
+                <button className='text-red-700 uppercase'>Delete</button>
+                <button className='text-green-700 uppercase'>Edit</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      }
+    
     </div>
   )
 }
