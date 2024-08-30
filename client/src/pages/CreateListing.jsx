@@ -46,6 +46,7 @@ export default function CreateListing() {
                 console.log(error);
                 setImageUploadError("Image upload failed (2 mb max per image)");
             });
+            console.log(e);
 
         } else if (files.length + formData.imageUrls.length == 0) {
             setImageUploadError("You need to upload at least one image");
